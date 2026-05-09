@@ -12,3 +12,27 @@ datasource db {
   provider = "postgresql"
 }
 
+enum DoctorStatus {
+  DUTY
+  LEAVE
+}
+
+enum Specialization {
+  CONSULTANT_SURGEON
+  DERMATOLOGIST
+  GENERAL_PHYSICIAN
+  PEDIATRICIAN
+}
+
+model Doctor {
+  id              String          @id @default(uuid())
+  name            String
+  email           String          @unique
+  phone           String
+  specialization  Specialization
+  availableTime   String
+  status          DoctorStatus    @default(DUTY)
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
