@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { AppointmentStatus } from '@prisma/client';
@@ -8,10 +8,15 @@ export class AppointmentService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateAppointmentDto) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // START OF TODAY
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
 
-    // 1. Find available doctor by specialization
+    // END OF TODAY
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // FIND AVAILABLE DOCTOR
     const doctor = await this.prisma.doctor.findFirst({
       where: {
         specialization: dto.specialization,
@@ -20,23 +25,31 @@ export class AppointmentService {
     });
 
     if (!doctor) {
-      throw new Error('No doctor available');
+      throw new BadRequestException(
+        'No doctor available for this specialization',
+      );
     }
 
-    // 2. Get last token for doctor today
+    // FIND LAST TOKEN
     const lastAppointment = await this.prisma.appointment.findFirst({
       where: {
         doctorId: doctor.id,
-        date: today,
+        appointmentDate: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
       },
       orderBy: {
         tokenNumber: 'desc',
       },
     });
 
-    const nextToken = lastAppointment ? lastAppointment.tokenNumber + 1 : 1;
+    // NEXT TOKEN
+    const nextToken = lastAppointment
+      ? lastAppointment.tokenNumber + 1
+      : 1;
 
-    // 3. Create appointment
+    // CREATE APPOINTMENT
     const appointment = await this.prisma.appointment.create({
       data: {
         patientName: dto.patientName,
@@ -45,17 +58,41 @@ export class AppointmentService {
         doctorId: doctor.id,
         tokenNumber: nextToken,
         status: AppointmentStatus.WAITING,
-        date: today,
+        appointmentDate: new Date(),
       },
     });
 
     return appointment;
   }
 
+  async getQueueToday() {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return this.prisma.appointment.findMany({
+      where: {
+        appointmentDate: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      orderBy: {
+        tokenNumber: 'asc',
+      },
+    });
+  }
+
   async getQueue(doctorId: string) {
     return this.prisma.appointment.findMany({
-      where: { doctorId },
-      orderBy: { tokenNumber: 'asc' },
+      where: {
+        doctorId,
+      },
+      orderBy: {
+        tokenNumber: 'asc',
+      },
     });
   }
 

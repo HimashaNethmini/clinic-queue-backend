@@ -25,36 +25,34 @@ enum AppointmentStatus {
   NOW_SERVING
   COMPLETED
   CANCELLED
-  
 }
 
 model Doctor {
-  id             String           @id @default(uuid())
+  id             String         @id @default(uuid())
   name           String
-  email          String           @unique
+  email          String         @unique
   phone          String
   specialization Specialization
   availableTime  String
-  status         DoctorStatus     @default(DUTY)
+  status         DoctorStatus   @default(DUTY)
   appointments   Appointment[]
 
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Appointment {
-  id           String             @id @default(uuid())
-  patientName  String
-  phone        String
-  doctorId     String
-  doctor       Doctor             @relation(fields: [doctorId], references: [id])
-  specialization Specialization
-  tokenNumber  Int
-  status       AppointmentStatus  @default(WAITING)
-  date         DateTime           @default(now())
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  id              String            @id @default(uuid())
+  patientName     String
+  phone           String
+  doctorId        String
+  doctor          Doctor            @relation(fields: [doctorId], references: [id])
+  specialization  Specialization
+  tokenNumber     Int
+  status          AppointmentStatus @default(WAITING)
+  appointmentDate DateTime
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
-  @@index([doctorId, date])
-  @@unique([doctorId, tokenNumber, date])
+  @@index([doctorId, appointmentDate])
 }

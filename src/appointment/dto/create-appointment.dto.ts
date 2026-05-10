@@ -20,5 +20,5 @@ export class AppointmentResponseDto {
   doctorId: string;
   tokenNumber: number;
   status: AppointmentStatus;
-  date: Date;
+  appointmentDate: Date;
 }
