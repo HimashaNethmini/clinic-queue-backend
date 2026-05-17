@@ -1,6 +1,6 @@
 import { IsString, IsEnum } from 'class-validator';
 import { Specialization} from '@prisma/client';
-// import { AppointmentStatus } from '@prisma/client';
+import { AppointmentStatus } from '@prisma/client';
 
 export class CreateAppointmentDto {
   @IsString()
@@ -20,5 +20,5 @@ export class AppointmentResponseDto {
   doctorId: string;
   tokenNumber: number;
   status: AppointmentStatus;
-  date: Date;
+  appointmentDate: Date;
 }
