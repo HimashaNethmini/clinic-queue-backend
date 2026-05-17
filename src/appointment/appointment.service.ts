@@ -64,27 +64,30 @@ export class AppointmentService {
 
     return appointment;
   }
+async getQueueToday() {
+  const now = new Date()
 
-  async getQueueToday() {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+  // Get today's date in UTC-safe way
+  const startOfDay = new Date(now)
+  startOfDay.setUTCHours(0, 0, 0, 0)
 
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+  const endOfDay = new Date(now)
+  endOfDay.setUTCHours(23, 59, 59, 999)
 
-    return this.prisma.appointment.findMany({
-      where: {
-        appointmentDate: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
+  const appointments = await this.prisma.appointment.findMany({
+    where: {
+      appointmentDate: {
+        gte: startOfDay,
+        lte: endOfDay,
       },
-      orderBy: {
-        tokenNumber: 'asc',
-      },
-    });
-  }
+    },
+    orderBy: {
+      tokenNumber: 'asc',
+    },
+  })
 
+  return appointments
+}
   async getQueue(doctorId: string) {
     return this.prisma.appointment.findMany({
       where: {

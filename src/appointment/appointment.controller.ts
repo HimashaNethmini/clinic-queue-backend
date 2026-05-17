@@ -12,6 +12,11 @@ export class AppointmentController {
     return this.service.create(dto);
   }
 
+  @Get('queue/today')
+  getQueueToday() {
+    return this.service.getQueueToday();
+  }
+
   @Get('queue/:doctorId')
   getQueue(@Param('doctorId') doctorId: string) {
     return this.service.getQueue(doctorId);
